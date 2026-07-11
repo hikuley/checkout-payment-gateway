@@ -27,5 +27,68 @@ Once running, the Swagger UI is available at:
 ## Endpoints
 
 * **POST `/api/payments`**: Initiates a new payment.
-  * *Headers*: `X-Idempotency-Key` (Optional, to prevent duplicate requests).
+  * _Headers_: `X-Idempotency-Key` (Optional, to prevent duplicate requests).
 * **GET `/api/payments/{id}`**: Retrieves a previously made payment by UUID (returning masked card details).
+
+## Usage Examples
+
+### 1. Happy Path Payment Request
+
+**Request**
+```http
+POST http://localhost:8090/api/payments
+Content-Type: application/json
+X-Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 12,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 1050,
+  "cvv": "123"
+}
+```
+
+**Response (`201 Created`)**
+```json
+{
+  "id": "8b375b48-18e3-4de7-91a5-8e7cffc82bbd",
+  "status": "Authorized",
+  "cardNumberLastFour": "8877",
+  "expiryMonth": 12,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 1050
+}
+```
+
+### 2. Non-Happy Path (Validation Failure)
+
+If invalid request data is sent (e.g., negative amount, invalid CVV format):
+
+**Request**
+```http
+POST http://localhost:8090/api/payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 12,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": -50,
+  "cvv": "ab"
+}
+```
+
+**Response (`400 Bad Request`)**
+```json
+{
+  "message": "Validation failed",
+  "errors": {
+    "amount": "Amount must be a positive integer",
+    "cvv": "CVV must be 3 or 4 characters"
+  }
+}
+```
