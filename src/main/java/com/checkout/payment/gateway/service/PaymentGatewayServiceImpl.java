@@ -21,6 +21,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     private final PaymentsRepository paymentsRepository;
     private final BankSimulatorClient bankSimulatorClient;
+    private final java.util.Map<String, PaymentResponse> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public PaymentGatewayServiceImpl(PaymentsRepository paymentsRepository, BankSimulatorClient bankSimulatorClient) {
         this.paymentsRepository = paymentsRepository;
@@ -28,7 +29,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentResponse processPayment(PaymentRequest request) {
+    public PaymentResponse processPayment(PaymentRequest request, String idempotencyKey) {
+        if (idempotencyKey != null && idempotencyCache.containsKey(idempotencyKey)) {
+            LOG.debug("Returning cached response for idempotency key: {}", idempotencyKey);
+            return idempotencyCache.get(idempotencyKey);
+        }
+
         UUID id = UUID.randomUUID();
         String cardNumberLastFour = extractLastFourDigits(request.cardNumber());
 
@@ -39,6 +45,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 request.expiryYear(), request.currency(), request.amount());
 
         paymentsRepository.save(payment);
+
+        if (idempotencyKey != null) {
+            idempotencyCache.put(idempotencyKey, payment);
+        }
+
         LOG.debug("Processed payment {} with status {}", id, status);
         return payment;
     }

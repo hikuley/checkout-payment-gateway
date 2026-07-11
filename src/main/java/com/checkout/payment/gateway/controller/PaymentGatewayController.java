@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,8 +35,10 @@ public class PaymentGatewayController {
             @ApiResponse(responseCode = "503", description = "Bank simulator unavailable")
     })
     @PostMapping
-    public ResponseEntity<PaymentResponse> createPayment(@RequestBody @Valid PaymentRequest request) {
-        PaymentResponse response = paymentGatewayService.processPayment(request);
+    public ResponseEntity<PaymentResponse> createPayment(
+            @RequestHeader(value = "X-Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody @Valid PaymentRequest request) {
+        PaymentResponse response = paymentGatewayService.processPayment(request, idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

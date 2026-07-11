@@ -52,7 +52,7 @@ class PaymentGatewayServiceTest {
         when(bankSimulatorClient.submitPayment(request))
                 .thenReturn(new BankPaymentResponse(true, "auth-code"));
 
-        PaymentResponse response = paymentGatewayService.processPayment(request);
+        PaymentResponse response = paymentGatewayService.processPayment(request, null);
 
         assertThat(response.status()).isEqualTo(PaymentStatus.AUTHORIZED);
         assertThat(response.cardNumberLastFour()).isEqualTo("8871");
@@ -78,7 +78,7 @@ class PaymentGatewayServiceTest {
         when(bankSimulatorClient.submitPayment(any()))
                 .thenReturn(new BankPaymentResponse(false, null));
 
-        PaymentResponse response = paymentGatewayService.processPayment(request);
+        PaymentResponse response = paymentGatewayService.processPayment(request, null);
 
         assertThat(response.status()).isEqualTo(PaymentStatus.DECLINED);
         assertThat(response.cardNumberLastFour()).isEqualTo("8872");

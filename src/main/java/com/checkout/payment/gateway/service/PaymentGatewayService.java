@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public interface PaymentGatewayService {
 
-    PaymentResponse processPayment(PaymentRequest request);
+    PaymentResponse processPayment(PaymentRequest request, String idempotencyKey);
 
     PaymentResponse getPaymentById(UUID id);
 }
