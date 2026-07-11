@@ -7,7 +7,9 @@ import com.checkout.payment.gateway.model.PaymentRequest;
 import com.checkout.payment.gateway.model.PaymentResponse;
 import com.checkout.payment.gateway.model.bank.BankPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
+
 import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,15 +34,7 @@ public class PaymentGatewayService {
         BankPaymentResponse bankResponse = bankSimulatorClient.submitPayment(request);
         PaymentStatus status = bankResponse.authorized() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED;
 
-        PaymentResponse payment = new PaymentResponse(
-                id,
-                status,
-                cardNumberLastFour,
-                request.expiryMonth(),
-                request.expiryYear(),
-                request.currency(),
-                request.amount()
-        );
+        PaymentResponse payment = new PaymentResponse(id, status, cardNumberLastFour, request.expiryMonth(), request.expiryYear(), request.currency(), request.amount());
 
         paymentsRepository.save(payment);
         LOG.debug("Processed payment {} with status {}", id, status);
@@ -49,8 +43,7 @@ public class PaymentGatewayService {
 
     public PaymentResponse getPaymentById(UUID id) {
         LOG.debug("Retrieving payment with ID {}", id);
-        return paymentsRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+        return paymentsRepository.findById(id).orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
     }
 
     private String extractLastFourDigits(String cardNumber) {
