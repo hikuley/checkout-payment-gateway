@@ -41,11 +41,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         BankPaymentResponse bankResponse = bankSimulatorClient.submitPayment(request);
         PaymentStatus status = bankResponse.authorized() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED;
 
-        PaymentResponse payment = new PaymentResponse(id, status, cardNumberLastFour, request.expiryMonth(),
-                request.expiryYear(), request.currency(), request.amount());
+        PaymentResponse payment = new PaymentResponse(id, status, cardNumberLastFour, request.expiryMonth(), request.expiryYear(), request.currency(), request.amount());
 
         paymentsRepository.save(payment);
 
+        // Cache the response for idempotency if the key is provided
         if (idempotencyKey != null) {
             idempotencyCache.put(idempotencyKey, payment);
         }
