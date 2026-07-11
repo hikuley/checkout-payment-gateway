@@ -1,4 +1,4 @@
-package com.checkout.payment.gateway.controller;
+package com.checkout.payment.gateway.unit.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;

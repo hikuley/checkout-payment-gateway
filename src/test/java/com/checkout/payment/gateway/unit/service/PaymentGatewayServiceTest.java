@@ -1,4 +1,4 @@
-package com.checkout.payment.gateway.service;
+package com.checkout.payment.gateway.unit.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -13,6 +13,7 @@ import com.checkout.payment.gateway.model.PaymentRequest;
 import com.checkout.payment.gateway.model.PaymentResponse;
 import com.checkout.payment.gateway.model.bank.BankPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
+import com.checkout.payment.gateway.service.PaymentGatewayServiceImpl;
 import java.time.YearMonth;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

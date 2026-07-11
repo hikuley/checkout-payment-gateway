@@ -24,4 +24,9 @@ public class PaymentsRepository {
     public Optional<PaymentResponse> findById(UUID id) {
         return Optional.ofNullable(payments.get(id));
     }
+
+    public void clear() {
+        LOG.debug("Clearing all payments from repository");
+        payments.clear();
+    }
 }
