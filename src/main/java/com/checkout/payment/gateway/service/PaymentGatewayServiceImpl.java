@@ -30,22 +30,27 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentResponse processPayment(PaymentRequest request, String idempotencyKey) {
+        // Check cache first for idempotent requests to prevent duplicate processing
         if (idempotencyKey != null && idempotencyCache.containsKey(idempotencyKey)) {
             LOG.debug("Returning cached response for idempotency key: {}", idempotencyKey);
             return idempotencyCache.get(idempotencyKey);
         }
 
+        // Generate unique payment ID and extract masked card number for security
         UUID id = UUID.randomUUID();
         String cardNumberLastFour = extractLastFourDigits(request.cardNumber());
 
+        // Submit payment to bank simulator and determine transaction status
         BankPaymentResponse bankResponse = bankSimulatorClient.submitPayment(request);
         PaymentStatus status = bankResponse.authorized() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED;
 
+        // Build payment response with transaction details (card info masked)
         PaymentResponse payment = new PaymentResponse(id, status, cardNumberLastFour, request.expiryMonth(), request.expiryYear(), request.currency(), request.amount());
 
+        // Persist payment record to database for audit trail
         paymentsRepository.save(payment);
 
-        // Cache the response for idempotency if the key is provided
+        // Cache the response for idempotency if the key is provided to handle retries
         if (idempotencyKey != null) {
             idempotencyCache.put(idempotencyKey, payment);
         }

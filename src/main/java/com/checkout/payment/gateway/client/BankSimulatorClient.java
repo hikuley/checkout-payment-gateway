@@ -26,16 +26,21 @@ public class BankSimulatorClient {
     }
 
     public BankPaymentResponse submitPayment(PaymentRequest request) {
-        BankPaymentRequest bankRequest = toBankRequest(request);
         LOG.debug("Submitting payment to bank simulator at {}", bankSimulatorUrl);
+
+        BankPaymentRequest bankRequest = toBankRequest(request);
 
         try {
             return restTemplate.postForObject(bankSimulatorUrl, bankRequest, BankPaymentResponse.class);
         } catch (HttpStatusCodeException ex) {
-            if (ex.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
-                throw new BankUnavailableException("Bank simulator is unavailable");
-            }
+            handleBankException(ex);
             throw ex;
+        }
+    }
+
+    private void handleBankException(HttpStatusCodeException ex) {
+        if (ex.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
+            throw new BankUnavailableException("Bank simulator is unavailable");
         }
     }
 
