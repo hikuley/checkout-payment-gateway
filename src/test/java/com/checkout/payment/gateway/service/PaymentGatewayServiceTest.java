@@ -31,11 +31,11 @@ class PaymentGatewayServiceTest {
     @Mock
     private BankSimulatorClient bankSimulatorClient;
 
-    private PaymentGatewayService paymentGatewayService;
+    private PaymentGatewayServiceImpl paymentGatewayService;
 
     @BeforeEach
     void setUp() {
-        paymentGatewayService = new PaymentGatewayService(paymentsRepository, bankSimulatorClient);
+        paymentGatewayService = new PaymentGatewayServiceImpl(paymentsRepository, bankSimulatorClient);
     }
 
     @Test
@@ -47,8 +47,7 @@ class PaymentGatewayServiceTest {
                 futureExpiry.getYear(),
                 "GBP",
                 100,
-                "123"
-        );
+                "123");
 
         when(bankSimulatorClient.submitPayment(request))
                 .thenReturn(new BankPaymentResponse(true, "auth-code"));
@@ -74,8 +73,7 @@ class PaymentGatewayServiceTest {
                 futureExpiry.getYear(),
                 "USD",
                 250,
-                "456"
-        );
+                "456");
 
         when(bankSimulatorClient.submitPayment(any()))
                 .thenReturn(new BankPaymentResponse(false, null));
