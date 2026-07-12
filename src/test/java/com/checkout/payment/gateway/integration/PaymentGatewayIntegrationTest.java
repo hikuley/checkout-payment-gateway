@@ -90,7 +90,7 @@ class PaymentGatewayIntegrationTest {
 
             YearMonth futureExpiry = YearMonth.now().plusMonths(6);
 
-            String paymentId = given()
+            given()
                     .contentType(ContentType.JSON)
                     .body(validPaymentRequest())
                     .when()
@@ -103,9 +103,7 @@ class PaymentGatewayIntegrationTest {
                     .body("amount", equalTo(500))
                     .body("expiryMonth", equalTo(futureExpiry.getMonthValue()))
                     .body("expiryYear", equalTo(futureExpiry.getYear()))
-                    .body("id", notNullValue())
-                    .extract()
-                    .path("id");
+                    .body("id", notNullValue());
 
             wireMockServer.verify(1, postRequestedFor(urlEqualTo("/payments")));
         }

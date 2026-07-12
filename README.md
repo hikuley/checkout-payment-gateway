@@ -15,9 +15,10 @@ docker-compose up -d
 ```
 The server starts on port `8090` by default.
 
-### 3. Run Tests
+### 3. Run All Tests
+To execute all the tests (both unit and integration tests) in the project, run:
 ```bash
-./mvnw test
+./mvnw clean test
 ```
 
 ## API Documentation

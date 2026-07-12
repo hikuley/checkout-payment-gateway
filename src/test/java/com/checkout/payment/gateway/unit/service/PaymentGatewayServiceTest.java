@@ -50,8 +50,7 @@ class PaymentGatewayServiceTest {
                 100,
                 "123");
 
-        when(bankSimulatorClient.submitPayment(request))
-                .thenReturn(new BankPaymentResponse(true, "auth-code"));
+        when(bankSimulatorClient.submitPayment(request)).thenReturn(new BankPaymentResponse(true, "auth-code"));
 
         PaymentResponse response = paymentGatewayService.processPayment(request, null);
 
@@ -76,8 +75,7 @@ class PaymentGatewayServiceTest {
                 250,
                 "456");
 
-        when(bankSimulatorClient.submitPayment(any()))
-                .thenReturn(new BankPaymentResponse(false, null));
+        when(bankSimulatorClient.submitPayment(any())).thenReturn(new BankPaymentResponse(false, null));
 
         PaymentResponse response = paymentGatewayService.processPayment(request, null);
 
