@@ -34,6 +34,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         if (idempotencyKey != null && idempotencyCache.containsKey(idempotencyKey)) {
             LOG.debug("Returning cached response for idempotency key: {}", idempotencyKey);
             return idempotencyCache.get(idempotencyKey);
+        } else if (idempotencyKey != null) {
+            LOG.debug("No cached response found for idempotency key: {}", idempotencyKey);
         }
 
         // Generate unique payment ID and extract masked card number for security
