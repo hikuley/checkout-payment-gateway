@@ -8,7 +8,9 @@ import com.checkout.payment.gateway.model.PaymentResponse;
 import com.checkout.payment.gateway.model.bank.BankPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     private final PaymentsRepository paymentsRepository;
     private final BankSimulatorClient bankSimulatorClient;
-    private final java.util.Map<String, PaymentResponse> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, PaymentResponse> idempotencyCache = new ConcurrentHashMap<>();
 
     public PaymentGatewayServiceImpl(PaymentsRepository paymentsRepository, BankSimulatorClient bankSimulatorClient) {
         this.paymentsRepository = paymentsRepository;
