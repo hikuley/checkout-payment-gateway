@@ -6,20 +6,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Spring configuration for the HTTP client used to communicate with external services.
+ *
+ * <p>Provides a {@link RestTemplate} bean with explicit connection and read timeouts
+ * to prevent threads from hanging on slow or unresponsive upstream services.
+ */
 @Configuration
 public class RestClientConfig {
 
     /**
-     * Creates a RestTemplate bean with configured timeout settings for HTTP requests.
-     * This bean is used for making RESTful API calls to external payment services
-     * with predefined connection and read timeouts to prevent hanging requests.
+     * Creates a {@link RestTemplate} bean with a 10-second connection timeout and a
+     * 10-second read timeout.
+     *
+     * @return a configured {@link RestTemplate} instance
      */
     @Bean
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        // Set connection timeout to 10 seconds to limit time spent establishing a connection
         factory.setConnectTimeout(Duration.ofMillis(10000));
-        // Set read timeout to 10 seconds to limit time spent waiting for a response
         factory.setReadTimeout(Duration.ofMillis(10000));
         return new RestTemplate(factory);
     }

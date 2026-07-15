@@ -5,9 +5,20 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Spring configuration for the OpenAPI (Swagger) documentation.
+ *
+ * <p>Registers a customised {@link OpenAPI} bean that sets the API title, version,
+ * and description shown in the Swagger UI at {@code /swagger-ui.html}.
+ */
 @Configuration
 public class OpenApiConfig {
 
+    /**
+     * Produces the {@link OpenAPI} bean with project-specific metadata.
+     *
+     * @return a configured {@link OpenAPI} instance
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()

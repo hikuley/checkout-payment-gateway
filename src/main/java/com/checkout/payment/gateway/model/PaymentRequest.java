@@ -9,6 +9,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Incoming payment request submitted by a merchant.
+ *
+ * <p>All fields are validated via Bean Validation constraints. The
+ * {@link FutureExpiry} class-level constraint additionally ensures the
+ * card has not already expired.
+ */
 @FutureExpiry
 public record PaymentRequest(
         @NotBlank(message = "Card number is required")
