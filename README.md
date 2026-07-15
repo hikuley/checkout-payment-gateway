@@ -1,6 +1,19 @@
 # Checkout.com Payment Gateway
 
-An API-based payment gateway built with Spring Boot 3.x and Java 21 to process card payments through a simulated acquiring bank.
+An API-based payment gateway built with Spring Boot 4.1.0 and Java 21 to process card payments through a simulated acquiring bank.
+
+## Tech Stack
+
+| Technology | Purpose | Version |
+|---|---|---|
+| Java | Language | 21 |
+| Spring Boot | Application framework | 4.1.0 |
+| Spring MVC | REST API layer | managed by Spring Boot |
+| Spring Validation | Bean Validation (JSR-380) | managed by Spring Boot |
+| springdoc-openapi | Swagger / OpenAPI UI | 2.8.6 |
+| REST Assured | Integration test HTTP client | 5.5.0 |
+| WireMock | HTTP mock server for tests | 3.10.0 |
+| Maven | Build tool | (wrapper included) |
 
 ## Quick Start
 
