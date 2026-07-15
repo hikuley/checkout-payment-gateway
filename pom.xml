@@ -49,6 +49,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
             <version>4.0.6</version>
@@ -88,6 +94,52 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <!-- Disable the single catch-all run; we split it below. -->
+                    <execution>
+                        <id>default-test</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                    <!-- Unit tests (plus the context-load smoke test) run first. -->
+                    <execution>
+                        <id>unit-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/unit/**/*Test.java</include>
+                                <include>**/ApplicationTests.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <testBanner>UNIT</testBanner>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <!-- Integration tests run second. -->
+                    <execution>
+                        <id>integration-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/integration/**/*Test.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <testBanner>INTEGRATION</testBanner>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
