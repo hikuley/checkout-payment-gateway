@@ -12,6 +12,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * HTTP client for communicating with the external bank simulator.
+ *
+ * <p>Translates internal {@link PaymentRequest} objects into the bank's
+ * expected format and maps error responses to domain exceptions.
+ * The target URL is configured via the {@code bank.simulator.url} property.
+ */
 @Component
 public class BankSimulatorClient {
 
@@ -20,11 +27,22 @@ public class BankSimulatorClient {
     private final RestTemplate restTemplate;
     private final String bankSimulatorUrl;
 
+    /**
+     * @param restTemplate     pre-configured HTTP client
+     * @param bankSimulatorUrl base URL of the bank simulator, injected from {@code bank.simulator.url}
+     */
     public BankSimulatorClient(RestTemplate restTemplate, @Value("${bank.simulator.url}") String bankSimulatorUrl) {
         this.restTemplate = restTemplate;
         this.bankSimulatorUrl = bankSimulatorUrl;
     }
 
+    /**
+     * Submits a payment to the bank simulator and returns the authorization result.
+     *
+     * @param request the payment request containing card and amount details
+     * @return the bank's response indicating whether the payment was authorized
+     * @throws BankUnavailableException if the bank simulator responds with HTTP 503
+     */
     public BankPaymentResponse submitPayment(PaymentRequest request) {
         LOG.debug("Submitting payment to bank simulator at {}", bankSimulatorUrl);
 
@@ -38,12 +56,26 @@ public class BankSimulatorClient {
         }
     }
 
+    /**
+     * Maps HTTP error codes from the bank simulator to domain exceptions.
+     *
+     * @param ex the HTTP exception returned by the bank simulator
+     * @throws BankUnavailableException if the status code is 503 Service Unavailable
+     */
     private void handleBankException(HttpStatusCodeException ex) {
         if (ex.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
             throw new BankUnavailableException("Bank simulator is unavailable");
         }
     }
 
+    /**
+     * Converts an internal {@link PaymentRequest} to the bank's {@link BankPaymentRequest} format.
+     *
+     * <p>The expiry date is formatted as {@code MM/YYYY} as required by the bank API.
+     *
+     * @param request the internal payment request
+     * @return a {@link BankPaymentRequest} ready to be sent to the bank simulator
+     */
     private BankPaymentRequest toBankRequest(PaymentRequest request) {
         String expiryDate = String.format("%02d/%d", request.expiryMonth(), request.expiryYear());
         return new BankPaymentRequest(

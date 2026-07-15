@@ -18,16 +18,36 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller exposing the Payment Gateway API.
+ *
+ * <p>Handles HTTP requests for creating and retrieving payment transactions.
+ * All endpoints are mounted under {@code /api/payments}.
+ */
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentGatewayController {
 
     private final PaymentGatewayService paymentGatewayService;
 
+    /**
+     * @param paymentGatewayService service used to process and retrieve payments
+     */
     public PaymentGatewayController(PaymentGatewayService paymentGatewayService) {
         this.paymentGatewayService = paymentGatewayService;
     }
 
+    /**
+     * Initiates a new payment transaction.
+     *
+     * <p>An optional {@code X-Idempotency-Key} header can be supplied so that
+     * retried requests with the same key return the original response without
+     * reprocessing the payment.
+     *
+     * @param idempotencyKey optional client-supplied key for idempotent retries
+     * @param request        validated payment details
+     * @return {@code 201 Created} with the resulting {@link PaymentResponse}
+     */
     @Operation(summary = "Create a payment", description = "Initiates a new payment transaction")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Payment created"),
@@ -42,6 +62,12 @@ public class PaymentGatewayController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Retrieves the details of a previously processed payment.
+     *
+     * @param id unique identifier of the payment
+     * @return {@code 200 OK} with the {@link PaymentResponse}, or {@code 404} if not found
+     */
     @Operation(summary = "Get a payment", description = "Retrieves details of a previously made payment")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Payment found"),
