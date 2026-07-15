@@ -10,6 +10,7 @@ An API-based payment gateway built with Spring Boot 4.1.0 and Java 21 to process
 | Spring Boot | Application framework | 4.1.0 |
 | Spring MVC | REST API layer | managed by Spring Boot |
 | Spring Validation | Bean Validation (JSR-380) | managed by Spring Boot |
+| Resilience4j | Retry on transient bank failures | 2.3.0 |
 | springdoc-openapi | Swagger / OpenAPI UI | 2.8.6 |
 | REST Assured | Integration test HTTP client | 5.5.0 |
 | WireMock | HTTP mock server for tests | 3.10.0 |
@@ -43,6 +44,34 @@ Once running, the Swagger UI is available at:
 * **POST `/api/payments`**: Initiates a new payment.
   * _Headers_: `X-Idempotency-Key` (Optional, to prevent duplicate requests).
 * **GET `/api/payments/{id}`**: Retrieves a previously made payment by UUID (returning masked card details).
+
+## Retry Behavior
+
+Calls to the acquiring bank simulator are wrapped in a [Resilience4j](https://resilience4j.readme.io/) retry (`BankSimulatorRetryConfig`) so that a temporarily unhealthy bank does not immediately fail a payment.
+
+**What is retried** — only transient failures:
+
+* `503 Service Unavailable` from the bank (surfaced as `BankUnavailableException`)
+* Connection/read timeouts (`ResourceAccessException`)
+
+**What is _not_ retried** — anything that represents a definitive answer:
+
+* Successful responses, including declined payments (`authorized: false`)
+* `4xx` client errors (e.g. a malformed request)
+
+After all attempts are exhausted, the original exception propagates and the caller receives `503 Service Unavailable`.
+
+### Configuration
+
+Retry settings are externalized in `application.properties` and can be tuned without code changes:
+
+```properties
+bank.simulator.retry.max-attempts=3          # total attempts, including the first call
+bank.simulator.retry.initial-interval-ms=500 # wait before the first retry
+bank.simulator.retry.backoff-multiplier=2    # exponential backoff factor
+```
+
+With the defaults, a persistently unavailable bank is tried 3 times with waits of 500 ms and 1000 ms between attempts. Each retry is logged at `WARN`.
 
 ## Usage Examples
 
