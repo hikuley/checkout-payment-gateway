@@ -45,6 +45,47 @@ Once running, the Swagger UI is available at:
   * _Headers_: `X-Idempotency-Key` (Optional, to prevent duplicate requests).
 * **GET `/api/payments/{id}`**: Retrieves a previously made payment by UUID (returning masked card details).
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Client(["Client"])
+
+    subgraph App["checkout-payment-gateway"]
+        Controller["PaymentGatewayController
+        /api/payments"]
+        Service["PaymentGatewayService"]
+        Repo[("PaymentsRepository
+        (in-memory)")]
+        BankClient["BankSimulatorClient
+        (Resilience4j retry)"]
+    end
+
+    Bank[["Bank Simulator
+    (external, mocked)"]]
+
+    Client -- "POST /api/payments
+    GET /api/payments/{id}" --> Controller
+    Controller --> Service
+    Service -- "save / findById" --> Repo
+    Service -- "submitPayment" --> BankClient
+    BankClient -- "HTTP POST" --> Bank
+    Bank -. "authorized / declined" .-> BankClient
+    BankClient -. "BankPaymentResponse" .-> Service
+    Service -. "PaymentResponse" .-> Controller
+    Controller -. "201 / 200 / 4xx / 503" .-> Client
+```
+
+**Request flow (`POST /api/payments`)**
+
+1. `PaymentGatewayController` validates the incoming `PaymentRequest` (Bean Validation) and reads the optional `X-Idempotency-Key` header.
+2. `PaymentGatewayServiceImpl` checks its in-memory idempotency cache — if the key was already processed, the cached `PaymentResponse` is returned immediately.
+3. Otherwise, it calls `BankSimulatorClient`, which maps the request to a `BankPaymentRequest` and posts it to the bank simulator over HTTP, retrying transient failures (see [Retry Behavior](#retry-behavior)).
+4. The bank's `authorized`/`authorization_code` response is mapped to a `PaymentStatus` (`AUTHORIZED` / `DECLINED`), the card number is masked to its last 4 digits, and the result is persisted in `PaymentsRepository`.
+5. The response is cached against the idempotency key (if provided) and returned to the client.
+
+`GET /api/payments/{id}` skips the bank/idempotency steps and reads directly from `PaymentsRepository`.
+
 ## Retry Behavior
 
 Calls to the acquiring bank simulator are wrapped in a [Resilience4j](https://resilience4j.readme.io/) retry (`BankSimulatorRetryConfig`) so that a temporarily unhealthy bank does not immediately fail a payment.
