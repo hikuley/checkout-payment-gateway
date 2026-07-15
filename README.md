@@ -47,34 +47,7 @@ Once running, the Swagger UI is available at:
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Client(["Client"])
-
-    subgraph App["checkout-payment-gateway"]
-        Controller["PaymentGatewayController
-        /api/payments"]
-        Service["PaymentGatewayService"]
-        Repo[("PaymentsRepository
-        (in-memory)")]
-        BankClient["BankSimulatorClient
-        (Resilience4j retry)"]
-    end
-
-    Bank[["Bank Simulator
-    (external, mocked)"]]
-
-    Client -- "POST /api/payments
-    GET /api/payments/{id}" --> Controller
-    Controller --> Service
-    Service -- "save / findById" --> Repo
-    Service -- "submitPayment" --> BankClient
-    BankClient -- "HTTP POST" --> Bank
-    Bank -. "authorized / declined" .-> BankClient
-    BankClient -. "BankPaymentResponse" .-> Service
-    Service -. "PaymentResponse" .-> Controller
-    Controller -. "201 / 200 / 4xx / 503" .-> Client
-```
+![Architecture diagram](docs/architecture.svg)
 
 **Request flow (`POST /api/payments`)**
 
