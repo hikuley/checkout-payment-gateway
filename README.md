@@ -47,7 +47,34 @@ Once running, the Swagger UI is available at:
 
 ## Architecture
 
-![Architecture diagram](docs/architecture.svg)
+```mermaid
+flowchart LR
+    Client(["Client"])
+
+    subgraph App["checkout-payment-gateway"]
+        Controller["PaymentGatewayController
+        /api/payments"]
+        Service["PaymentGatewayService"]
+        Repo[("PaymentsRepository
+        (in-memory)")]
+        BankClient["BankSimulatorClient
+        (Resilience4j retry)"]
+    end
+
+    Bank[["Bank Simulator
+    (external, mocked)"]]
+
+    Client -- "POST /api/payments
+    GET /api/payments/{id}" --> Controller
+    Controller --> Service
+    Service -- "save / findById" --> Repo
+    Service -- "submitPayment" --> BankClient
+    BankClient -- "HTTP POST" --> Bank
+    Bank -. "authorized / declined" .-> BankClient
+    BankClient -. "BankPaymentResponse" .-> Service
+    Service -. "PaymentResponse" .-> Controller
+    Controller -. "201 / 200 / 4xx / 503" .-> Client
+```
 
 **Request flow (`POST /api/payments`)**
 
@@ -92,19 +119,18 @@ With the defaults, a persistently unavailable bank is tried 3 times with waits o
 ### 1. Happy Path Payment Request
 
 **Request**
-```http
-POST http://localhost:8090/api/payments
-Content-Type: application/json
-X-Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000
-
-{
-  "cardNumber": "2222405343248877",
-  "expiryMonth": 12,
-  "expiryYear": 2030,
-  "currency": "GBP",
-  "amount": 1050,
-  "cvv": "123"
-}
+```bash
+curl -i -X POST http://localhost:8090/api/payments \
+  -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000" \
+  -d '{
+    "cardNumber": "2222405343248877",
+    "expiryMonth": 12,
+    "expiryYear": 2030,
+    "currency": "GBP",
+    "amount": 1050,
+    "cvv": "123"
+  }'
 ```
 
 **Response (`201 Created`)**
@@ -125,18 +151,17 @@ X-Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000
 If invalid request data is sent (e.g., negative amount, invalid CVV format):
 
 **Request**
-```http
-POST http://localhost:8090/api/payments
-Content-Type: application/json
-
-{
-  "cardNumber": "2222405343248877",
-  "expiryMonth": 12,
-  "expiryYear": 2030,
-  "currency": "GBP",
-  "amount": -50,
-  "cvv": "ab"
-}
+```bash
+curl -i -X POST http://localhost:8090/api/payments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cardNumber": "2222405343248877",
+    "expiryMonth": 12,
+    "expiryYear": 2030,
+    "currency": "GBP",
+    "amount": -50,
+    "cvv": "ab"
+  }'
 ```
 
 **Response (`400 Bad Request`)**
